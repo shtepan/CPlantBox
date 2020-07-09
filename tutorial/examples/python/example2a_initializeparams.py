@@ -52,26 +52,23 @@ rs.setRootSystemParameter(srp)
 rs.initialize()
 
 fig, axes = plt.subplots(1, 3, figsize=(15, 7))
-simtimes = [0, 30, 60, 125]  # the last lateral will emerge at 
 for i in range(0, 3):
 
     rs.simulate(np.diff(simtimes)[i])  #  [day]
 
     a = axes[i]
     a.set_xlim([-15, 15.])
-    a.set_ylim([-35., 0.])  # starts at -3 cm, max length 30 cm      
     a.set_title("after {} days".format(rs.getSimTime()))
 
-    roots = rs.getPolylines()        
     for root in roots:
         for j, n in enumerate(root[:-1]):
             n2 = root[j + 1]
             a.plot([n.x, n2.x], [n.z, n2.z], "g")
-            
-fig.tight_layout()         
-plt.show()            
-        
-rs.write("../results/example_2a.vtp")
+
+fig.tight_layout()
+plt.show()
+
+rs.write("results/example_2a.vtp")
 
 # Some outputs....
 print(" length", rs.getParameter("length"))

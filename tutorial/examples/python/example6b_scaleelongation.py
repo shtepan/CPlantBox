@@ -1,4 +1,4 @@
-"""Scale root elongation based on SoilLookup"""  # todo improve example
+"""Scale root elongation based on SoilLookup"""  # TODO improve example
 import sys
 sys.path.append("../../..")
 import plantbox as pb
@@ -33,10 +33,9 @@ for i in range(0, round(N)):
     # update scales (e.g. from water content, soil_strength)
     scales = np.exp(-0.4 * soil_strength)  # scales from some equation (TODO)
 
-    # copy scales into scaling funciton
+    # copy scales into scaling function
     scale_elongation.data = scales
 
     rs.simulate(dt, True)
 
-rs.write("../results/example_6b.vtp")
-
+rs.write("results/example_6b.vtp")

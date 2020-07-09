@@ -44,7 +44,7 @@ name = "Anagallis_femina_Leitner_2010"
 rs.readParameters(path + name + ".xml")
 rs.initialize()
 
-# Set useer defined after initialize
+# Set user defined after initialize
 mytropism1 = My_Info_Tropism(rs)
 mytropism1.setTropismParameter(2., 0.2)
 mytropism2 = My_Age_Tropism(rs, 2., 0.5, 5.)  # after 5 days switch from plagio- to gravitropism
@@ -58,5 +58,4 @@ for _ in range(0, N):
     rs.simulate(dt)
 
 # Export results (as vtp)
-rs.write("../results/example_5b.vtp")
-
+rs.write("results/example_5b.vtp")
