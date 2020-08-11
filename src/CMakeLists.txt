@@ -1,5 +1,5 @@
 #
-# 1. Make RootBox library
+# 1. Make CPlantBox library
 #
 add_library(CPlantBox SHARED                        
             organparameter.cpp
@@ -30,7 +30,7 @@ add_library(CPlantBox SHARED
 set_target_properties(CPlantBox PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/)
 
 #
-# 2. Make plantbox library
+# 2. Make CPlantBox Pyhthon binding
 #
 # find_package(pybind11 REQUIRED) 
 set(PYBIND11_PYTHON_VERSION 3.7)
@@ -65,7 +65,7 @@ pybind11_add_module(plantbox SHARED
             
 			external/tinyxml2/tinyxml2.cpp
             external/aabbcc/AABB.cc
-			
+	    	
 			PyPlantBox.cpp									
 			)
 			

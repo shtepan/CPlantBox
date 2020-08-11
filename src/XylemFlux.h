@@ -9,7 +9,9 @@ namespace CPlantBox {
 /**
  * Hybrid solver (Meunier et al. 2017)
  *
- * Units are [cm], [g], and [day], they are fixed by choosing g, and rho
+ * Units are [cm], [g], and [day]
+ *
+ * Wraps a MappedSegments class (i.e. MappedRootSystem)
  */
 class XylemFlux
 {
@@ -24,7 +26,6 @@ public:
 
     std::map<int,double> soilFluxes(double simTime, const std::vector<double>& rx, const std::vector<double>& sx, bool approx = false); // [cm3/day]
     std::vector<double> segFluxes(double simTime, const std::vector<double>& rx, const std::vector<double>& sx, bool approx = false); // for each segment in [cm3/day]
-
     std::vector<double> segFluxesSchroeder(double simTime, std::vector<double> rx, const std::vector<double>& sx, double critP, std::function<double(double)> mpf);
 
     std::vector<double> segOuterRadii(int type = 0) const; ///< outer cylinder radii to match cell volume
@@ -44,9 +45,6 @@ public:
 
     std::function<double(double,int)> kr_f = [](double age, int type) { return 0.; };
     std::function<double(double,int)> kx_f = [](double age, int type) { return 1.; };
-
-//    double rho = 1; // [g cm-3]
-//    double g =  9.8065*100.*24.*3600.*24.*3600.;  // [cm day-2]
 
     std::shared_ptr<CPlantBox::MappedSegments> rs;
 
