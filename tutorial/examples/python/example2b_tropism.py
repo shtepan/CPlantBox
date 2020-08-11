@@ -1,4 +1,4 @@
-"""shows the influence of tropism paramters"""
+"""shows the influence of tropism parameters"""
 import sys
 sys.path.append("../../..")
 import plantbox as pb
