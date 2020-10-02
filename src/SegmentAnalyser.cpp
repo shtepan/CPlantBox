@@ -165,7 +165,7 @@ std::vector<double> SegmentAnalyser::getParameter(std::string name, double def) 
     if (data.count(name)) { // first, check data
         return data.at(name);
     }
-    std::vector<double> d(segO.size()); // make return vector
+    std::vector<double> d(segments.size()); // make return vector
     if (name == "length") {
         for (size_t i=0; i<d.size(); i++) {
             d.at(i) = getSegmentLength(i);
@@ -190,7 +190,7 @@ std::vector<double> SegmentAnalyser::getParameter(std::string name, double def) 
             d.at(i) = segO.at(i).lock()->getParameter(name);
         } else { // in case the segment has no origin
             if (std::isnan(def)) {
-                throw std::invalid_argument("SegmentAnalyser::getParameter: segment origin expired (segment has no onwer), "
+                throw std::invalid_argument("SegmentAnalyser::getParameter: segment origin expired (segment has no owner), "
                     "for segment index " + std::to_string(i) + ", parameter name "+name);
             } else {
                 d.at(i) = def;
@@ -503,6 +503,39 @@ void SegmentAnalyser::mapPeriodic_(double xx, Vector3d axis, double eps) {
     /* 2. map points to period [-xx/2, xx/2] */
     for (auto& n : nodes) {
         n = n.minus(axis.times(floor((n.times(axis)+xx/2.)/xx)*xx));
+    }
+}
+
+/**
+ * Maps the 3d coordinates to the x-z plan (sqrt(x2+y2), 0., z)
+ */
+void SegmentAnalyser::map2D() {
+
+    for (size_t i=0; i<segments.size(); i++) {
+        if (nodes[segments[i].x].y!=0) { // not mapped before (initial segment of base root)
+            double x0 = nodes[segments[i].y].x; // first segment decides signum of branch
+            double x = nodes[segments[i].x].x; // node 1
+            double y = nodes[segments[i].x].y;
+            nodes[segments[i].x].x = (-1*(x0<=0) + 1*(x0>0))*std::sqrt(x*x+y*y);
+            nodes[segments[i].x].y = 0.;
+            x = nodes[segments[i].y].x; // node 2
+            y = nodes[segments[i].y].y;
+            nodes[segments[i].y].x = (-1*(x0<=0) + 1*(x0>0))*std::sqrt(x*x+y*y);
+            nodes[segments[i].y].y = 0.;
+        } else { // map only node 2
+            double x = nodes[segments[i].y].x;
+            double y = nodes[segments[i].y].y;
+            double r = std::sqrt(x*x+y*y);
+            double x0;
+            if (r>0.1) {
+                x0 = nodes[segments[i].x].x;
+            } else {
+                x0 = nodes[segments[i].y].x;
+            }
+            int sgn = (-1*(x0<=0) + 1*(x0>0));
+            nodes[segments[i].y].x = sgn*r;
+            nodes[segments[i].y].y = 0.;
+        }
     }
 }
 

@@ -26,8 +26,11 @@ namespace py = pybind11;
 
 #include "RootSystem.h"
 #include "Plant.h"
+
+// sepcialized
 #include "MappedOrganism.h"
 #include "XylemFlux.h"
+#include "ExudationModel.h"
 
 #include "sdf_rs.h" // todo to revise ...
 
@@ -447,6 +450,7 @@ PYBIND11_MODULE(plantbox, m) {
            .def("distribution2", (std::vector<std::vector<double>> (SegmentAnalyser::*)(std::string, double, double, double, double, int, int, bool) const) &SegmentAnalyser::distribution2) //overloads
            .def("distribution2", (std::vector<std::vector<SegmentAnalyser>> (SegmentAnalyser::*)(double, double, double, double, int, int) const) &SegmentAnalyser::distribution2) //overloads
            .def("mapPeriodic", &SegmentAnalyser::mapPeriodic)
+           .def("map2D", &SegmentAnalyser::map2D)
            .def("getOrgans", &SegmentAnalyser::getOrgans)
            .def("getNumberOfOrgans", &SegmentAnalyser::getNumberOfOrgans)
            .def("cut", (SegmentAnalyser (SegmentAnalyser::*)(const SDF_HalfPlane&) const) &SegmentAnalyser::cut)
@@ -782,12 +786,13 @@ PYBIND11_MODULE(plantbox, m) {
             .def("linearSystem",&XylemFlux::linearSystem, py::arg("simTime") , py::arg("sx") , py::arg("cells") = true,
             		py::arg("soil_k") = std::vector<double>())
             .def("soilFluxes",&XylemFlux::soilFluxes, py::arg("simTime"), py::arg("rx"), py::arg("sx"), py::arg("approx") = false)
-            .def("segFluxes",&XylemFlux::segFluxes, py::arg("simTime"), py::arg("rx"), py::arg("sx"), py::arg("approx") = false)
-            .def("sumSoilFluxes",&XylemFlux::sumSoilFluxes)
+            .def("segFluxes",&XylemFlux::segFluxes, py::arg("simTime"), py::arg("rx"), py::arg("sx"), py::arg("approx") = false, py::arg("cells") = false)
+            .def("sumSoilFluxes",&XylemFlux::sumSegFluxes)
 			.def("splitSoilFluxes",&XylemFlux::splitSoilFluxes, py::arg("soilFluxes"), py::arg("type") = 0)
             .def("segOuterRadii",&XylemFlux::segOuterRadii, py::arg("type") = 0)
 			.def("segLength",&XylemFlux::segLength)
-            .def("segFluxesSchroeder",&XylemFlux::segFluxesSchroeder)
+            .def("segSRA",&XylemFlux::segSRA)
+            .def("segSRAStressedFlux",&XylemFlux::segSRAStressedFlux)
             .def_readonly("kr_f", &XylemFlux::kr_f)
             .def_readonly("kx_f", &XylemFlux::kx_f)
             .def_readwrite("aI", &XylemFlux::aI)
@@ -826,8 +831,29 @@ PYBIND11_MODULE(plantbox, m) {
              .value("linear", Plant::GrowthFunctionTypes::gft_linear)
              .export_values();
 
+    py::class_<ExudationModel, std::shared_ptr<ExudationModel>>(m, "ExudationModel")
+            .def(py::init<double, double, int, std::shared_ptr<RootSystem>>())
+            .def(py::init<double, double, double, int, int, int, std::shared_ptr<RootSystem>>())
+            .def_readwrite("Q", &ExudationModel::Q)
+            .def_readwrite("Dl", &ExudationModel::Dl)
+            .def_readwrite("theta", &ExudationModel::theta)
+            .def_readwrite("R", &ExudationModel::R)
+            .def_readwrite("k", &ExudationModel::k)
+            .def_readwrite("l", &ExudationModel::l)
+            .def_readwrite("type", &ExudationModel::type)
+            .def_readwrite("n0", &ExudationModel::n0)
+            .def_readwrite("thresh13", &ExudationModel::thresh13)
+            .def_readwrite("calc13", &ExudationModel::calc13)
+            .def_readwrite("observationRadius", &ExudationModel::observationRadius)
+            .def("calculate",  &ExudationModel::calculate);
+    py::enum_<ExudationModel::IntegrationType>(m, "IntegrationType")
+            .value("mps_straight", ExudationModel::IntegrationType::mps_straight )
+            .value("mps", ExudationModel::IntegrationType::mps )
+            .value("mls", ExudationModel::IntegrationType::mls )
+            .export_values();
+
     //   /*
-    //    * sdf_rs.h todo
+    //    * sdf_rs.h todo revise
     //    */
     //   py::class_<SDF_RootSystem, SignedDistanceFunction>(m, "SDF_RootSystem")
     //       .def(py::init<std::vector<Vector3d>, std::vector<Vector2i>, std::vector<double>, double>())

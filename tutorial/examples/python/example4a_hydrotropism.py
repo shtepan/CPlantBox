@@ -39,13 +39,6 @@ for _ in range(0, N):
     rs.simulate(dt)
 
 # Export results (as vtp)
-<<<<<<< HEAD
-rs.write("results/example_5a.vtp")
-
-# Export geometry of static soil
-rs.setGeometry(layer)  # just for vizualisation
-rs.write("results/example_5a.py")
-=======
 rs.write("results/example_4a.vtp")
 
 # Export geometry of static soil
@@ -53,5 +46,4 @@ rs.setGeometry(layer)  # just for vizualisation
 rs.write("results/example_4a.py")
 
 # Plot, using vtk
-vp.plot_roots(rs, "type", True, 'oblique')
->>>>>>> upstream/master
+vp.plot_roots(rs, "type")
