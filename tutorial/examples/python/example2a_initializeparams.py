@@ -69,7 +69,7 @@ for i in range(0, 3):
 fig.tight_layout()
 plt.show()
 
-rs.write("results/example_2a.vtp")
+rs.write("../results/example_2a.vtp")
 
 # Some outputs....
 print(" length", rs.getParameter("length"))
