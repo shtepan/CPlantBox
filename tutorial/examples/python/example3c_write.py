@@ -1,13 +1,18 @@
-"""dgf and vtp export example"""
+"""dgf and vtp, and rsml export example"""
 import sys; sys.path.append("../../..")
+sys.path.append("../../../src/python_modules")
 import plantbox as pb
 
 rs = pb.RootSystem()
 path = "../../../modelparameter/rootsystem/"
-name = "Anagallis_femina_Leitner_2010"
+name = "wheat" # "Brassica_napus_a_Leitner_2010"  # "Brassica_napus_a_Leitner_2010"  # "Anagallis_femina_Leitner_2010"  # 
 rs.readParameters(path + name + ".xml")
+
+rhizotron = pb.SDF_PlantBox(7, 7, 14)
+rs.setGeometry(rhizotron)  # soilcore, or rhizotron
+
 rs.initialize()
-rs.simulate(15, True)
+rs.simulate(30, True)
 
 ana = pb.SegmentAnalyser(rs)
 
@@ -18,3 +23,7 @@ for s in aseg:
 
 ana.write("results/example_3c.vtp", ["radius", "surface"])
 ana.write("results/example_3c.dgf")
+
+# segment analyser cannot write rsml files becasue rsml is based on polylines, not segments
+# use RootSystem::write to export a RSML
+rs.write("results/example_3c.rsml")

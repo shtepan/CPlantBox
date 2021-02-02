@@ -353,7 +353,6 @@ PYBIND11_MODULE(plantbox, m) {
             .def("randn", &Organism::randn)
             //        .def_readwrite("seed_nC_", &Organism::seed_nC_)
             //        .def_readwrite("seed_nZ_", &Organism::seed_nZ_)
-
             .def("__str__",&Organism::toString);
 
 
@@ -400,6 +399,23 @@ PYBIND11_MODULE(plantbox, m) {
             .def_readwrite("n", &EquidistantGrid1D::n)
             .def_readwrite("grid", &EquidistantGrid1D::grid)
             .def_readwrite("data", &EquidistantGrid1D::data);
+    py::class_<RectilinearGrid3D, SoilLookUp, std::shared_ptr<RectilinearGrid3D>>(m, "RectilinearGrid3D")
+            .def(py::init<Grid1D*,Grid1D*,Grid1D*>())
+            .def("map",&RectilinearGrid3D::map)
+			.def("getData",&RectilinearGrid3D::getData)
+			.def("setData",&RectilinearGrid3D::setData)
+			.def("getGridPoint",&RectilinearGrid3D::getGridPoint)
+            .def_readwrite("xgrid", &RectilinearGrid3D::xgrid)
+            .def_readwrite("ygrid", &RectilinearGrid3D::ygrid)
+            .def_readwrite("zgrid", &RectilinearGrid3D::zgrid)
+            .def_readwrite("nx", &RectilinearGrid3D::nx)
+            .def_readwrite("ny", &RectilinearGrid3D::ny)
+            .def_readwrite("nz", &RectilinearGrid3D::nz)
+            .def_readwrite("data", &RectilinearGrid3D::data);
+    py::class_<EquidistantGrid3D, RectilinearGrid3D, std::shared_ptr<EquidistantGrid3D>>(m, "EquidistantGrid3D")
+		.def(py::init<>())
+		.def(py::init<double, double, double, int, int, int>())
+		.def(py::init<double, double, int, double, double, int, double, double, int>());
     /**
      * tropism.h
      */
@@ -755,13 +771,16 @@ PYBIND11_MODULE(plantbox, m) {
      */
     py::class_<MappedSegments, std::shared_ptr<MappedSegments>>(m, "MappedSegments")
         .def(py::init<>())
+        .def(py::init<std::vector<Vector3d>, std::vector<double>, std::vector<Vector2i>, std::vector<double>, std::vector<int>,  std::vector<int>>())
         .def(py::init<std::vector<Vector3d>, std::vector<double>, std::vector<Vector2i>, std::vector<double>, std::vector<int>>())
         .def(py::init<std::vector<Vector3d>, std::vector<Vector2i>, std::vector<double>>())
         .def("setRadius", &MappedSegments::setRadius)
-        .def("setTypes", &MappedSegments::setTypes)
+        .def("setTypes", &MappedSegments::setSubTypes) //kept for backward compatibility
+        .def("setSubTypes", &MappedSegments::setSubTypes)
         .def("setSoilGrid", (void (MappedSegments::*)(const std::function<int(double,double,double)>&)) &MappedSegments::setSoilGrid)
-        .def("setSoilGrid", (void (MappedSegments::*)(const std::function<int(double,double,double)>&, Vector3d, Vector3d, Vector3d)) &MappedSegments::setSoilGrid)
-        .def("setRectangularGrid", &MappedSegments::setRectangularGrid)
+        .def("setSoilGrid", (void (MappedSegments::*)(const std::function<int(double,double,double)>&, Vector3d, Vector3d, Vector3d, bool)) &MappedSegments::setSoilGrid,
+        		py::arg("s"), py::arg("min"), py::arg("max"), py::arg("res"), py::arg("cut") = true)
+        .def("setRectangularGrid", &MappedSegments::setRectangularGrid, py::arg("min"), py::arg("max"), py::arg("res"), py::arg("cut") = true)
         .def("mapSegments",  &MappedSegments::mapSegments)
         .def("cutSegments", &MappedSegments::cutSegments)
         .def_readwrite("soil_index", &MappedSegments::soil_index)
@@ -770,29 +789,48 @@ PYBIND11_MODULE(plantbox, m) {
         .def_readwrite("nodeCTs", &MappedSegments::nodeCTs)
         .def_readwrite("segments", &MappedSegments::segments)
         .def_readwrite("radii", &MappedSegments::radii)
-        .def_readwrite("types", &MappedSegments::types)
+        .def_readwrite("organTypes", &MappedSegments::organTypes)
+        .def_readwrite("Types", &MappedSegments::subTypes) //kept for backward compatibility
+        .def_readwrite("subTypes", &MappedSegments::subTypes)
         .def_readwrite("seg2cell", &MappedSegments::seg2cell)
         .def_readwrite("cell2seg", &MappedSegments::cell2seg);
     py::class_<MappedRootSystem, RootSystem, MappedSegments,  std::shared_ptr<MappedRootSystem>>(m, "MappedRootSystem")
         .def(py::init<>())
         .def("mappedSegments",  &MappedRootSystem::mappedSegments)
         .def("addSegments", &MappedRootSystem::rootSystem);
+    /*
+     * XylemFlux.h
+     */
     py::class_<XylemFlux, std::shared_ptr<XylemFlux>>(m, "XylemFlux")
             .def(py::init<std::shared_ptr<CPlantBox::MappedSegments>>())
-            .def("setKr",&XylemFlux::setKr, py::arg("values"), py::arg("age") = std::vector<double>(0))
-            .def("setKx",&XylemFlux::setKx, py::arg("values"), py::arg("age") = std::vector<double>(0))
-            .def("setKrTables",&XylemFlux::setKrTables)
-            .def("setKxTables",&XylemFlux::setKxTables)
+            .def(py::init<std::shared_ptr<CPlantBox::MappedPlant>>())
+            .def("setKr",py::overload_cast<std::vector<double>, std::vector<double>> (&XylemFlux::setKr), py::arg("values"), py::arg("age") = std::vector<double>(0))
+            .def("setKx",py::overload_cast<std::vector<double>, std::vector<double>> (&XylemFlux::setKx), py::arg("values"), py::arg("age") = std::vector<double>(0))
+            .def("setKrTables",py::overload_cast<std::vector<std::vector<double>>, std::vector<std::vector<double>>> (&XylemFlux::setKrTables))
+            .def("setKxTables",py::overload_cast<std::vector<std::vector<double>>, std::vector<std::vector<double>>> (&XylemFlux::setKxTables))
+			
+			
+            .def("setKr",py::overload_cast<std::vector<std::vector<double>>,std::vector<std::vector<double>>> (&XylemFlux::setKr), py::arg("values"), py::arg("age") = std::vector<std::vector<double>>(0))
+            .def("setKx",py::overload_cast<std::vector<std::vector<double>>,std::vector<std::vector<double>>> (&XylemFlux::setKx), py::arg("values"), py::arg("age") = std::vector<std::vector<double>>(0))
+            .def("setKrTables",py::overload_cast<std::vector<std::vector<std::vector<double>>>, std::vector<std::vector<std::vector<double>>>> (&XylemFlux::setKrTables))
+            .def("setKxTables",py::overload_cast<std::vector<std::vector<std::vector<double>>>, std::vector<std::vector<std::vector<double>>>> (&XylemFlux::setKxTables))
+
             .def("linearSystem",&XylemFlux::linearSystem, py::arg("simTime") , py::arg("sx") , py::arg("cells") = true,
             		py::arg("soil_k") = std::vector<double>())
-            .def("soilFluxes",&XylemFlux::soilFluxes, py::arg("simTime"), py::arg("rx"), py::arg("sx"), py::arg("approx") = false)
-            .def("segFluxes",&XylemFlux::segFluxes, py::arg("simTime"), py::arg("rx"), py::arg("sx"), py::arg("approx") = false, py::arg("cells") = false)
+            .def("soilFluxes",&XylemFlux::soilFluxes, py::arg("simTime"), py::arg("rx"), py::arg("sx"), py::arg("approx") = false,
+            		py::arg("soil_k") = std::vector<double>())
+            .def("segFluxes",&XylemFlux::segFluxes, py::arg("simTime"), py::arg("rx"), py::arg("sx"), py::arg("approx") = false,
+            		py::arg("cells") = false, py::arg("soil_k") = std::vector<double>())
+
             .def("sumSoilFluxes",&XylemFlux::sumSegFluxes)
 			.def("splitSoilFluxes",&XylemFlux::splitSoilFluxes, py::arg("soilFluxes"), py::arg("type") = 0)
             .def("segOuterRadii",&XylemFlux::segOuterRadii, py::arg("type") = 0)
 			.def("segLength",&XylemFlux::segLength)
             .def("segSRA",&XylemFlux::segSRA)
-            .def("segSRAStressedFlux",&XylemFlux::segSRAStressedFlux)
+            //.def("segSchroeder",&XylemFlux::segSchroeder)
+            .def("segSRAStressedFlux",&XylemFlux::segSRAStressedFlux, py::arg("sx"), py::arg("wiltingPoint"), py::arg("hc"),
+                py::arg("mpf"), py::arg("impf"), py::arg("dx") = 1.e-6)
+	        .def("segSRAStressedAnalyticalFlux",&XylemFlux::segSRAStressedAnalyticalFlux)
             .def_readonly("kr_f", &XylemFlux::kr_f)
             .def_readonly("kx_f", &XylemFlux::kx_f)
             .def_readwrite("aI", &XylemFlux::aI)
@@ -801,7 +839,10 @@ PYBIND11_MODULE(plantbox, m) {
             .def_readwrite("aB", &XylemFlux::aB)
             .def_readwrite("kr", &XylemFlux::kr)
             .def_readwrite("kx", &XylemFlux::kx)
-            .def_readwrite("rs", &XylemFlux::rs);
+            .def_readwrite("rs", &XylemFlux::rs)
+			.def_readwrite("airPressure", &XylemFlux::airPressure)
+			.def_readwrite("gs", &XylemFlux::gs);
+
     /*
      * Plant.h
      */
@@ -812,12 +853,20 @@ PYBIND11_MODULE(plantbox, m) {
             .def("reset", &Plant::reset)
             .def("openXML", &Plant::openXML)
             .def("setTropism", &Plant::setTropism)
-            .def("simulate",(void (Plant::*)(double,bool)) &Organism::simulate, py::arg("dt"), py::arg("verbose") = false) // in Organism::simulate
+            .def("simulate",(void (Plant::*)(double,bool)) &Plant::simulate, py::arg("dt"), py::arg("verbose") = false) 
             .def("simulate",(void (Plant::*)()) &Plant::simulate)
             .def("initCallbacks", &Plant::initCallbacks)
             .def("createTropismFunction", &Plant::createTropismFunction)
             .def("createGrowthFunction", &Plant::createGrowthFunction)
             .def("write", &Plant::write);
+			
+	py::class_<MappedPlant, Plant, MappedSegments,  std::shared_ptr<MappedPlant>>(m, "MappedPlant")	
+			.def(py::init<>())	
+			.def("mappedSegments", (void (MappedPlant::*)(bool)) &MappedPlant::mappedSegments)	
+            .def("initialize", &MappedPlant::initialize, py::arg("verbose") = true)
+			.def("printNodes",  &MappedPlant::printNodes)
+			.def("addSegments", &MappedPlant::plant);	
+
     py::enum_<Plant::TropismTypes>(m, "TropismType")
             .value("plagio", Plant::TropismTypes::tt_plagio)
             .value("gravi", Plant::TropismTypes::tt_gravi)
@@ -845,7 +894,7 @@ PYBIND11_MODULE(plantbox, m) {
             .def_readwrite("thresh13", &ExudationModel::thresh13)
             .def_readwrite("calc13", &ExudationModel::calc13)
             .def_readwrite("observationRadius", &ExudationModel::observationRadius)
-            .def("calculate",  &ExudationModel::calculate);
+            .def("calculate",  &ExudationModel::calculate, py::arg("tend"), py::arg("i0") = 0, py::arg("iend")=-1);
     py::enum_<ExudationModel::IntegrationType>(m, "IntegrationType")
             .value("mps_straight", ExudationModel::IntegrationType::mps_straight )
             .value("mps", ExudationModel::IntegrationType::mps )
