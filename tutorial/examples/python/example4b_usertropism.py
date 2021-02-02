@@ -1,5 +1,5 @@
 """user defined tropism in python"""
-import sys; sys.path.append("../../..")
+import sys; sys.path.append("../../.."); sys.path.append("../../../src/python_modules")
 import numpy as np
 import plantbox as pb
 import vtk_plot as vp
@@ -64,5 +64,9 @@ rs.write("results/example_5b.vtp")
 rs.write("results/example_4b.vtp")
 
 # Plot, using vtk
+<<<<<<< HEAD
 vp.plot_roots(rs, "age", True, 'oblique')
 >>>>>>> upstream/master:tutorial/examples/python/example4b_usertropism.py
+=======
+vp.plot_roots(rs, "age")
+>>>>>>> upstream/master
