@@ -3,7 +3,13 @@ Vazeny ctenari,
 
 Nejprve jsme pracovali v **CRootBox**, kde jsme zjistili, ze vyvoj byl na podzim 2019 prenesen na **CPlantBox**, nejspis ve fazi posunu od **boost-python** k **[pybind11](https://pybind11.readthedocs.io/en/stable/benchmark.html)** napojeni na C++.
 
-Dulezite je zminit, ze CPlantBox vyzaduje alespon *python3.7*, proto jsme kompilovali ve virtualnim prostredi ```anaconda3-2020.02``` (*python3.7.6*) spoustenem navic pres aplikaci ```pyenv```.
+Dulezite je zminit, ze CPlantBox vyzaduje alespon *python3.7*. Proto jsme kompilovali ve virtualnim prostredi ```anaconda3-2020.02``` (*python3.7.6*) spoustenem navic pres aplikaci ```pyenv```. Balik Anaconda3 lze snadno nainstalovat prikazem
+
+    pyenv install anaconda3-2020.02
+
+Dostupne verze Python distribuci zobrazi prikaz
+
+    pyenv install -l
 
 CPlantBox jsme stahli pomoci BASH prikazu ```git clone``` z https://github.com/Plant-Root-Soil-Interactions-Modelling/CPlantBox.git
 
@@ -17,7 +23,6 @@ Pri prvni casti kompilace CPlantBox prikazem ```cmake .``` jsme zjistili, ze se 
 
     //Path to a library.
     PYTHON_LIBRARY:FILEPATH=/home/rootlabadmin/.pyenv/versions/anaconda3-2020.02/lib/libpython3.7m.a
-
 
 V CPlantBox uz se pak ```make``` zkompiloval bez problemu.
 
